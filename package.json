@@ -1,14 +1,26 @@
 {
-  "name": "git-stats-exten",
-  "displayName": "Git Diff Stats",
+  "name": "git-changed-lines",
+  "displayName": "Git Changed Lines",
   "description": "Show added/removed lines vs the base branch in the status bar.",
   "version": "0.0.1",
-  "publisher": "local",
+  "publisher": "iatanas0v",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iatanas0v/git-stats-extension.git"
+  },
   "engines": {
     "vscode": "^1.75.0"
   },
   "categories": [
     "SCM Providers"
+  ],
+  "keywords": [
+    "git",
+    "diff",
+    "status bar",
+    "lines changed"
   ],
   "activationEvents": [
     "onStartupFinished"
