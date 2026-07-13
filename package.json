@@ -1,0 +1,25 @@
+{
+  "name": "git-stats-exten",
+  "displayName": "Git Diff Stats",
+  "description": "Show added/removed lines vs the base branch in the status bar.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "SCM Providers"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitStats.refresh",
+        "title": "Git Stats: Refresh"
+      }
+    ]
+  }
+}
