@@ -5,6 +5,8 @@ Shows added/removed line counts vs the base branch in the VSCode status bar.
 `$(diff) +123 -45` means 123 lines added, 45 removed compared to the base
 branch — including untracked files.
 
+<img width="353" height="47" alt="image" src="https://github.com/user-attachments/assets/ab1335ba-1c50-4cc0-a6d2-b052d33e0b74" />
+
 ## What it counts
 
 Diff between `HEAD`'s merge-base with the base branch and the working tree, plus
@@ -33,3 +35,7 @@ Host, then open a git repo in that window.
 ```
 code --install-extension git-stats-exten-0.0.1.vsix
 ```
+
+## Install from marketplace
+
+https://marketplace.visualstudio.com/items?itemName=iatanas0v.git-changed-lines
