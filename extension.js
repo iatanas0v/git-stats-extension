@@ -1,19 +1,29 @@
 const vscode = require("vscode");
 const { exec } = require("child_process");
 
-// Reuses the user's shell pipeline. Guards the empty-base case so a repo with no
-// main/master still counts working-tree changes instead of erroring.
+// Base is the parent branch (the branch this one was cut from), falling back to
+// main/master and finally to HEAD so a repo with neither still counts working-tree
+// changes instead of erroring.
 const SCRIPT = `
-base=$(for b in main master origin/main origin/master; do \
-         git rev-parse --verify --quiet "$b" >/dev/null && { echo "$b"; break; }; \
-       done)
+cur=$(git rev-parse --abbrev-ref HEAD)
+parent=$(git show-branch -a 2>/dev/null | sed "s/].*//" | grep "\\*" | grep -v "$cur" | head -n1 | sed "s/^.*\\[//")
+
+if [ -n "$parent" ] && git rev-parse --verify --quiet "$parent" >/dev/null; then
+  base="$parent"
+else
+  base=$(for b in main master origin/main origin/master; do
+           git rev-parse --verify --quiet "$b" >/dev/null && { echo "$b"; break; }
+         done)
+fi
+
 if [ -n "$base" ]; then
   range=$(git merge-base HEAD "$base")
 else
   range=HEAD
 fi
-{ git diff -M "$range" --numstat; \
-  git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index --numstat /dev/null {}; \
+
+{ git diff -M "$range" --numstat
+  git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index --numstat /dev/null {}
 } | awk '{ a += $1; r += $2 } END { printf "%d %d", a, r }'
 `;
 
@@ -25,7 +35,7 @@ let debounceTimer;
 function activate(context) {
   item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   item.command = "gitStats.refresh";
-  item.tooltip = "Lines changed vs base branch (click to refresh)";
+  item.tooltip = "Lines changed vs parent branch (click to refresh)";
   context.subscriptions.push(item);
 
   context.subscriptions.push(
