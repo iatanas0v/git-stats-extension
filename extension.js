@@ -6,7 +6,18 @@ const { exec } = require("child_process");
 // changes instead of erroring.
 const SCRIPT = `
 cur=$(git rev-parse --abbrev-ref HEAD)
-parent=$(git show-branch -a 2>/dev/null | sed "s/].*//" | grep "\\*" | grep -v "$cur" | head -n1 | sed "s/^.*\\[//")
+
+# A trunk branch has no parent. Without this guard show-branch happily returns an
+# unrelated sibling branch, and its merge-base sits far behind HEAD, so a clean
+# main reports every commit since the fork as a change.
+case "$cur" in
+  main|master|HEAD)
+    parent=""
+    ;;
+  *)
+    parent=$(git show-branch -a 2>/dev/null | sed "s/].*//" | grep "\\*" | grep -v "\\[$cur\$" | head -n1 | sed "s/^.*\\[//")
+    ;;
+esac
 
 if [ -n "$parent" ] && git rev-parse --verify --quiet "$parent" >/dev/null; then
   base="$parent"

@@ -15,9 +15,11 @@ untracked files.
 The base branch is the **parent branch** — the branch the current one was cut
 from, detected via `git show-branch`. This keeps stacked branches honest: a
 branch off a feature branch counts only its own lines, not the parent's too.
-If no parent is found (e.g. you're on `main`), it falls back to the first that
-exists of `main`, `master`, `origin/main`, `origin/master`, and finally to
-working-tree changes against `HEAD`.
+
+On `main`, `master`, or a detached `HEAD` there is no parent, so detection is
+skipped and only uncommitted work is counted. Otherwise, if no parent is found
+it falls back to the first that exists of `main`, `master`, `origin/main`,
+`origin/master`, and finally to working-tree changes against `HEAD`.
 
 ## When it refreshes
 
