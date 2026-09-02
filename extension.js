@@ -12,26 +12,36 @@ cur=$(git rev-parse --abbrev-ref HEAD)
 # main reports every commit since the fork as a change.
 case "$cur" in
   main|master|HEAD)
-    parent=""
+    parents=""
     ;;
   *)
-    parent=$(git show-branch -a 2>/dev/null | sed "s/].*//" | grep "\\*" | grep -v "\\[$cur\$" | head -n1 | sed "s/^.*\\[//")
+    # Its first hit is as often origin/HEAD or a revision expression (feat^) as the
+    # real parent, so take every name it offers, trimmed of ^/~, and let the
+    # merge-base comparison below pick.
+    parents=$(git show-branch -a 2>/dev/null | sed "s/].*//" | grep "\\*" | grep -v "\\[$cur\$" |
+              sed -e "s/^.*\\[//" -e "s/[\\^~].*//" | grep -vx "$cur" | awk '!seen[$0]++' | head -n20)
     ;;
 esac
 
-if [ -n "$parent" ] && git rev-parse --verify --quiet "$parent" >/dev/null; then
-  base="$parent"
-else
-  base=$(for b in main master origin/main origin/master; do
-           git rev-parse --verify --quiet "$b" >/dev/null && { echo "$b"; break; }
-         done)
-fi
+# Candidates must be real branches: show-branch emits revision expressions
+# (branch^2^^2) as readily as names, and rev-parse verifies those too.
+resolve() {
+  git rev-parse --verify --quiet "refs/heads/$1" ||
+  git rev-parse --verify --quiet "refs/remotes/$1"
+}
 
-if [ -n "$base" ]; then
-  range=$(git merge-base HEAD "$base")
-else
-  range=HEAD
-fi
+# Every wrong base -- a stale local master, a mis-detected parent -- sits behind
+# the real fork point, so trunk commits merged back into this branch get counted
+# as ours. The right base is whichever candidate's merge-base is furthest along.
+range=HEAD
+for cand in $parents main master origin/main origin/master; do
+  [ -n "$cand" ] || continue
+  resolve "$cand" >/dev/null || continue
+  mb=$(git merge-base HEAD "$cand" 2>/dev/null) || continue
+  if [ "$range" = HEAD ] || git merge-base --is-ancestor "$range" "$mb"; then
+    range="$mb"
+  fi
+done
 
 { git diff -M "$range" --numstat
   git ls-files -o --exclude-standard -z | xargs -0 -r -I{} git diff --no-index --numstat /dev/null {}

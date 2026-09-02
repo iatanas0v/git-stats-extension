@@ -2,7 +2,7 @@
   "name": "git-changed-lines",
   "displayName": "Git Changed Lines",
   "description": "Show added/removed lines vs the parent branch in the status bar.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "iatanas0v",
   "license": "MIT",
   "icon": "icon.png",
